@@ -378,13 +378,6 @@ def _catat_log(rec):
 
 def ask(question: str, maks_retry=2, verbose=True):
     t0 = time.perf_counter()
-    """
-    Pipeline:
-      1) sql = generate_sql(question)
-      2) jika not validate_sql(sql): coba generate ulang 1x; jika masih gagal -> pesan fallback
-      3) jalankan run_sql(sql) (bungkus try/except -> fallback bila error)
-      4) tampilkan SQL, tabel hasil, dan visualize(df)
-    """
     # TODO 6: implementasikan alur di atas dengan fallback/retry sederhana
     res = None
     for attempt in range(1, maks_retry + 2):
