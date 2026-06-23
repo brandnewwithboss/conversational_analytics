@@ -436,22 +436,29 @@ def jawab(pertanyaan, force=None):
 
 
 def _render(payload):
-    fmt = payload['format']
+    fmt = payload.get('format')
+
+    if not fmt:
+        st.warning("Format payload tidak ditemukan")
+        st.json(payload)
+        return
     if fmt == 'error':
-        st.error(payload['isi']); return
+        st.error(payload.get('isi')); 
+        return
     if payload.get('sql'):
         with st.expander('🔎 SQL'):
             st.code(payload['sql'], language='sql')
+            
     if fmt == 'tabel':
-        st.dataframe(payload['df'], use_container_width=True)
+        st.dataframe(payload.get('df'), use_container_width=True)
     elif fmt == 'narasi':
-        st.write(payload['isi'])
+        st.write(payload.get('isi'))
     elif fmt == 'auto':
-        st.write(payload['isi'])
+        st.write(payload.get('isi'))
     elif fmt == 'json':
-        st.json(payload['isi'])
+        st.json(payload.get('isi'))
     elif fmt == 'chart':
-        st.pyplot(buat_chart(payload['df'], payload['pertanyaan']))
+        st.pyplot(buat_chart(payload.get('df'), payload.get('pertanyaan', '')))
 
 for m in st.session_state.messages:
     with st.chat_message(m['role']):
