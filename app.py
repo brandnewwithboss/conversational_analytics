@@ -448,7 +448,7 @@ def _render(payload):
     if payload.get('sql'):
         with st.expander('🔎 SQL'):
             st.code(payload['sql'], language='sql')
-            
+
     if fmt == 'tabel':
         st.dataframe(payload.get('df'), use_container_width=True)
     elif fmt == 'narasi':
@@ -477,5 +477,13 @@ if q:
         else:
             out = jawab(q, force=None if paksa == 'auto' else paksa)
             st.session_state.cache[key] = out
-    st.session_state.messages.append({'role': 'assistant', 'payload': out})
+    if not isinstance(out, dict):
+      out = {
+        "format": "narasi",
+        "isi": str(out)
+        }
+    st.session_state.messages.append({
+        'role': 'assistant',
+        'payload': out
+    })
     st.rerun()
