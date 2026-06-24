@@ -298,16 +298,6 @@ def buat_narasi(df, pertanyaan):
               'Tulis narasi 2-3 kalimat berbasis data di atas saja.')
     return tanya_llm(prompt)
 
-# Function untuk Format Auto
-
-def buat_auto(df, pertanyaan):
-    fakta = _ringkas_df(df)
-    prompt = (f'Anda chatbot pintar untuk layanan human capital. Pertanyaan: {pertanyaan}\n'
-              f'Data:\n{df.head(10).to_string(index=False)}\n'
-              f'RINGKAS_DATA: {fakta}\n'
-              'Tulis jawaban dengan singkat sesuai data di atas saja.')
-    return tanya_llm(prompt)
-
 # Function untuk Format JSON
 
 def format_json(df, pertanyaan):
@@ -382,12 +372,10 @@ def jawab(pertanyaan, force=None):
         out["isi"] = None
     elif fmt == "narasi":
         out["isi"] = buat_narasi(df, pertanyaan)
-    elif fmt == "auto":
-        out["isi"] = buat_auto(df, pertanyaan)
     elif fmt == "json":
         out["isi"] = format_json(df, pertanyaan)
     else:
-        out["isi"] = buat_auto(df, pertanyaan)
+        out["isi"] = df
     return out
 
 
