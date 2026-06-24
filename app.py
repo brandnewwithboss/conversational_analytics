@@ -40,7 +40,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 DATA = Path("data")
-MODEL_NAME = "llama-3.3-70b-versatile"
+# MODEL_NAME = "llama-3.3-70b-versatile"
+MODEL_NAME = "llama-3.1-8b-instant"
 
 # Ambil API key dari Secrets Streamlit Community Cloud (Manage app -> Settings -> Secrets)
 api_key = st.secrets.get("GROQ_API_KEY", None)              # baca dari panel Secrets
@@ -360,7 +361,7 @@ def jawab(pertanyaan, force=None):
         return {'format': 'error', 'isi': res.get('fallback')}
     df = res['data']
     fmt = force or output_routing(pertanyaan, df)
-    
+
     out = {
     "format": fmt,
     "sql": res["sql"],
