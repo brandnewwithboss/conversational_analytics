@@ -390,12 +390,9 @@ for m in st.session_state.messages:
             st.markdown(m["content"])
         else:
             payload = m["payload"]
-            fmt = payload.get("format")
+            fmt = payload.get("format")         
 
-            if fmt == "error":
-                st.error(payload.get("isi"))
-
-            elif fmt == "tabel":
+            if fmt == "tabel":
                 st.dataframe(payload.get("df"), use_container_width=True)
 
             elif fmt in ("narasi"):
@@ -411,6 +408,9 @@ for m in st.session_state.messages:
                         payload.get("pertanyaan", "")
                     )
                 )
+                
+            elif fmt == "error":
+                st.error(payload.get("isi"))
 
             else:
                 st.write(payload.get("isi"))
@@ -440,7 +440,7 @@ if q:
 
     st.session_state.messages.append({
         "role": "assistant",
-        "payload": out['isi']
+        "payload": out
     })
 
     st.rerun()
