@@ -34,7 +34,7 @@ if 'messages' not in st.session_state:
     st.session_state.messages = []
 if 'cache' not in st.session_state:
     st.session_state.cache = {}
-  
+
 # Riwayat percakapan (disimpan agar bertahan antar-rerun)
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -86,75 +86,96 @@ def tanya_llm(prompt, temperature=0, **kwargs):
         model=MODEL_NAME,
         temperature=temperature,
     ).choices[0].message.content
-  
+
   return resp
 
 def get_few_shots():
-    return """
-    Contoh 1
+  return"""
     Pertanyaan: Siapa yang mengikuti diklat Data Engineering?
-
     SQL:
     SELECT e.nama
     FROM employees e
-    JOIN enrollments en
-    ON e.nip = en.nip
-    JOIN trainings t
-    ON en.training_id = t.training_id
+    JOIN enrollments en ON e.nip=en.nip
+    JOIN trainings t ON en.training_id=t.training_id
     WHERE t.nama_diklat ILIKE '%Data Engineering%';
 
-    ----------------------------------------
-
-    Contoh 2
     Pertanyaan: Siapa yang belum mengikuti diklat Data Engineering?
-
     SQL:
     SELECT e.nama
     FROM employees e
     WHERE NOT EXISTS (
         SELECT 1
         FROM enrollments en
-        JOIN trainings t
-          ON en.training_id = t.training_id
-        WHERE en.nip = e.nip
+        JOIN trainings t ON en.training_id=t.training_id
+        WHERE en.nip=e.nip
           AND t.nama_diklat ILIKE '%Data Engineering%'
     );
-
-    ----------------------------------------
-
-    Contoh 3
-    Pertanyaan: Berapa jumlah pegawai tiap divisi?
-
-    SQL:
-    SELECT divisi, COUNT(*)
-    FROM employees
-    GROUP BY divisi;
-
-    ----------------------------------------
-
-    Contoh 4
-    Pertanyaan: Tampilkan daftar pegawai yang bergabung setelah tahun 2023.
-
-    SQL:
-    SELECT nama, divisi, join_date
-    FROM employees
-    WHERE join_date >= '2024-01-01';
-
-    ----------------------------------------
-
-    Contoh 5
-    Pertanyaan: Tampilkan 10 pegawai dengan nilai pelatihan tertinggi.
-
-    SQL:
-    SELECT e.nama, t.nama_diklat, en.nilai
-    FROM enrollments en
-    JOIN employees e
-    ON en.nip = e.nip
-    JOIN trainings t
-    ON en.training_id = t.training_id
-    ORDER BY en.nilai DESC
-    LIMIT 10;
     """
+    # return """
+    # Contoh 1
+    # Pertanyaan: Siapa yang mengikuti diklat Data Engineering?
+
+    # SQL:
+    # SELECT e.nama
+    # FROM employees e
+    # JOIN enrollments en
+    # ON e.nip = en.nip
+    # JOIN trainings t
+    # ON en.training_id = t.training_id
+    # WHERE t.nama_diklat ILIKE '%Data Engineering%';
+
+    # ----------------------------------------
+
+    # Contoh 2
+    # Pertanyaan: Siapa yang belum mengikuti diklat Data Engineering?
+
+    # SQL:
+    # SELECT e.nama
+    # FROM employees e
+    # WHERE NOT EXISTS (
+    #     SELECT 1
+    #     FROM enrollments en
+    #     JOIN trainings t
+    #       ON en.training_id = t.training_id
+    #     WHERE en.nip = e.nip
+    #       AND t.nama_diklat ILIKE '%Data Engineering%'
+    # );
+
+    # ----------------------------------------
+
+    # Contoh 3
+    # Pertanyaan: Berapa jumlah pegawai tiap divisi?
+
+    # SQL:
+    # SELECT divisi, COUNT(*)
+    # FROM employees
+    # GROUP BY divisi;
+
+    # ----------------------------------------
+
+    # Contoh 4
+    # Pertanyaan: Tampilkan daftar pegawai yang bergabung setelah tahun 2023.
+
+    # SQL:
+    # SELECT nama, divisi, join_date
+    # FROM employees
+    # WHERE join_date >= '2024-01-01';
+
+    # ----------------------------------------
+
+    # Contoh 5
+    # Pertanyaan: Tampilkan 10 pegawai dengan nilai pelatihan tertinggi.
+
+    # SQL:
+    # SELECT e.nama, t.nama_diklat, en.nilai
+    # FROM enrollments en
+    # JOIN employees e
+    # ON en.nip = e.nip
+    # JOIN trainings t
+    # ON en.training_id = t.training_id
+    # ORDER BY en.nilai DESC
+    # LIMIT 10;
+    # """
 
 DIALEK = 'PostgreSQL'
 
@@ -278,7 +299,7 @@ def output_routing(question, df=None):
         "bar", "bar chart", "komposisi", "line", "line chart", "periode", "tren", "trend"
         ]):
       return "chart"
-    
+
     if any(k in p for k in [
         "kenapa", "mengapa", "insight", "analisis", "jelaskan", "ceritakan",
         "interpretasi", "kesimpulan", "ringkas", "ringkasan"
@@ -436,7 +457,7 @@ def _render(payload):
         st.json(payload)
         return
     if fmt == 'error':
-        st.error(payload.get('isi')); 
+        st.error(payload.get('isi'));
         return
     if payload.get('sql'):
         with st.expander('🔎 SQL'):
