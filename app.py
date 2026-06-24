@@ -111,6 +111,72 @@ def get_few_shots():
           AND t.nama_diklat ILIKE '%Data Engineering%'
     );
     """
+    # return """
+    # Contoh 1
+    # Pertanyaan: Siapa yang mengikuti diklat Data Engineering?
+
+    # SQL:
+    # SELECT e.nama
+    # FROM employees e
+    # JOIN enrollments en
+    # ON e.nip = en.nip
+    # JOIN trainings t
+    # ON en.training_id = t.training_id
+    # WHERE t.nama_diklat ILIKE '%Data Engineering%';
+
+    # ----------------------------------------
+
+    # Contoh 2
+    # Pertanyaan: Siapa yang belum mengikuti diklat Data Engineering?
+
+    # SQL:
+    # SELECT e.nama
+    # FROM employees e
+    # WHERE NOT EXISTS (
+    #     SELECT 1
+    #     FROM enrollments en
+    #     JOIN trainings t
+    #       ON en.training_id = t.training_id
+    #     WHERE en.nip = e.nip
+    #       AND t.nama_diklat ILIKE '%Data Engineering%'
+    # );
+
+    # ----------------------------------------
+
+    # Contoh 3
+    # Pertanyaan: Berapa jumlah pegawai tiap divisi?
+
+    # SQL:
+    # SELECT divisi, COUNT(*)
+    # FROM employees
+    # GROUP BY divisi;
+
+    # ----------------------------------------
+
+    # Contoh 4
+    # Pertanyaan: Tampilkan daftar pegawai yang bergabung setelah tahun 2023.
+
+    # SQL:
+    # SELECT nama, divisi, join_date
+    # FROM employees
+    # WHERE join_date >= '2024-01-01';
+
+    # ----------------------------------------
+
+    # Contoh 5
+    # Pertanyaan: Tampilkan 10 pegawai dengan nilai pelatihan tertinggi.
+
+    # SQL:
+    # SELECT e.nama, t.nama_diklat, en.nilai
+    # FROM enrollments en
+    # JOIN employees e
+    # ON en.nip = e.nip
+    # JOIN trainings t
+    # ON en.training_id = t.training_id
+    # ORDER BY en.nilai DESC
+    # LIMIT 10;
+    # """
+
 DIALEK = 'PostgreSQL'
 
 SCHEMA_STR = """employees(nip, nama, divisi, jabatan, join_date)
@@ -360,83 +426,65 @@ def jawab(pertanyaan, force=None):
         return {'format': 'error', 'isi': res.get('fallback')}
     df = res['data']
     fmt = force or output_routing(pertanyaan, df)
-    
-    out = {
-    "format": fmt,
-    "sql": res["sql"],
-    "df": df,
-    "pertanyaan": pertanyaan
-    }
-
-    if fmt == "chart":
-        out["isi"] = None
-    elif fmt == "narasi":
-        out["isi"] = buat_narasi(df, pertanyaan)
-    elif fmt == "json":
-        out["isi"] = format_json(df, pertanyaan)
+    out = {'format': fmt, 'sql': res['sql']}
+    if fmt == 'chart':
+        buat_chart(df, pertanyaan); out['isi'] = '(chart ditampilkan)'
+    elif fmt == 'narasi':
+        out['isi'] = buat_narasi(df, pertanyaan)
+    elif fmt == 'json':
+        out['isi'] = format_json(df, pertanyaan)
     else:
-        out["isi"] = df
+        out['isi'] = df
     return out
 
 
 
+def _render(payload):
+    fmt = payload.get('format')
+    if not fmt:
+        st.warning("Format payload tidak ditemukan")
+        st.json(payload)
+        return
+    if fmt == 'error':
+        st.error(payload.get('isi'));
+        return
+    # if payload.get('sql'):
+    #     with st.expander('🔎 SQL'):
+    #         st.code(payload['sql'], language='sql')
+
+    if fmt == 'tabel':
+        st.dataframe(payload.get('df'), use_container_width=True)
+    elif fmt == 'narasi':
+        st.write(payload.get('isi'))
+    elif fmt == 'json':
+        st.json(payload.get('isi'))
+    elif fmt == 'chart':
+        st.pyplot(buat_chart(payload.get('df'), payload.get('pertanyaan', '')))
+
 for m in st.session_state.messages:
-    with st.chat_message(m["role"]):
-        if m["role"] == "user":
-            st.markdown(m["content"])
+    with st.chat_message(m['role']):
+        if m['role'] == 'user':
+            st.markdown(m['content'])
         else:
-            payload = m["payload"]
-            fmt = payload.get("format")
+            _render(m['payload'])
 
-            if fmt == "error":
-                st.error(payload.get("isi"))
-
-            elif fmt == "tabel":
-                st.dataframe(payload.get("df"), use_container_width=True)
-
-            elif fmt in ("narasi", "auto"):
-                st.write(payload.get("isi"))
-
-            elif fmt == "json":
-                st.json(payload.get("isi"))
-
-            elif fmt == "chart":
-                st.pyplot(
-                    buat_chart(
-                        payload.get("df"),
-                        payload.get("pertanyaan", "")
-                    )
-                )
-
-            else:
-                st.write(payload.get("isi"))
-
-q = st.chat_input("Pertanyaan...")
-
+q = st.chat_input('Pertanyaan...')
 if q:
-    st.session_state.messages.append({
-        "role": "user",
-        "content": q
-    })
-
-    key = hashlib.sha256((q.lower().strip() + "|" + paksa).encode()).hexdigest()
-
-    with st.spinner("Memproses..."):
+    st.session_state.messages.append({'role': 'user', 'content': q})
+    key = hashlib.sha256((q.lower().strip() + '|' + paksa).encode()).hexdigest()
+    with st.spinner('Memproses…'):
         if key in st.session_state.cache:
             out = st.session_state.cache[key]
         else:
-            out = jawab(q, force=None if paksa == "auto" else paksa)
+            out = jawab(q, force=None if paksa == 'auto' else paksa)
             st.session_state.cache[key] = out
-
     if not isinstance(out, dict):
-        out = {
-            "format": "narasi",
-            "isi": str(out)
+      out = {
+        "format": "narasi",
+        "isi": str(out)
         }
-
     st.session_state.messages.append({
-        "role": "assistant",
-        "payload": out
+        'role': 'assistant',
+        'payload': out
     })
-
     st.rerun()
