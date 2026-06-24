@@ -111,72 +111,6 @@ def get_few_shots():
           AND t.nama_diklat ILIKE '%Data Engineering%'
     );
     """
-    # return """
-    # Contoh 1
-    # Pertanyaan: Siapa yang mengikuti diklat Data Engineering?
-
-    # SQL:
-    # SELECT e.nama
-    # FROM employees e
-    # JOIN enrollments en
-    # ON e.nip = en.nip
-    # JOIN trainings t
-    # ON en.training_id = t.training_id
-    # WHERE t.nama_diklat ILIKE '%Data Engineering%';
-
-    # ----------------------------------------
-
-    # Contoh 2
-    # Pertanyaan: Siapa yang belum mengikuti diklat Data Engineering?
-
-    # SQL:
-    # SELECT e.nama
-    # FROM employees e
-    # WHERE NOT EXISTS (
-    #     SELECT 1
-    #     FROM enrollments en
-    #     JOIN trainings t
-    #       ON en.training_id = t.training_id
-    #     WHERE en.nip = e.nip
-    #       AND t.nama_diklat ILIKE '%Data Engineering%'
-    # );
-
-    # ----------------------------------------
-
-    # Contoh 3
-    # Pertanyaan: Berapa jumlah pegawai tiap divisi?
-
-    # SQL:
-    # SELECT divisi, COUNT(*)
-    # FROM employees
-    # GROUP BY divisi;
-
-    # ----------------------------------------
-
-    # Contoh 4
-    # Pertanyaan: Tampilkan daftar pegawai yang bergabung setelah tahun 2023.
-
-    # SQL:
-    # SELECT nama, divisi, join_date
-    # FROM employees
-    # WHERE join_date >= '2024-01-01';
-
-    # ----------------------------------------
-
-    # Contoh 5
-    # Pertanyaan: Tampilkan 10 pegawai dengan nilai pelatihan tertinggi.
-
-    # SQL:
-    # SELECT e.nama, t.nama_diklat, en.nilai
-    # FROM enrollments en
-    # JOIN employees e
-    # ON en.nip = e.nip
-    # JOIN trainings t
-    # ON en.training_id = t.training_id
-    # ORDER BY en.nilai DESC
-    # LIMIT 10;
-    # """
-
 DIALEK = 'PostgreSQL'
 
 SCHEMA_STR = """employees(nip, nama, divisi, jabatan, join_date)
@@ -436,16 +370,25 @@ def jawab(pertanyaan, force=None):
         return {'format': 'error', 'isi': res.get('fallback')}
     df = res['data']
     fmt = force or output_routing(pertanyaan, df)
-    out = {'format': fmt, 'sql': res['sql']}
-    if fmt == 'chart':
-        buat_chart(df, pertanyaan); out['isi'] = '(chart ditampilkan)'
-    elif fmt == 'narasi':
-        out['isi'] = buat_narasi(df, pertanyaan)
-    elif fmt == 'json':
-        out['isi'] = format_json(df, pertanyaan)
+    
+    out = {
+    "format": fmt,
+    "sql": res["sql"],
+    "df": df,
+    "pertanyaan": pertanyaan
+    }
+
+    if fmt == "chart":
+        out["isi"] = None
+    elif fmt == "narasi":
+        out["isi"] = buat_narasi(df, pertanyaan)
+    elif fmt == "auto":
+        out["isi"] = buat_auto(df, pertanyaan)
+    elif fmt == "json":
+        out["isi"] = format_json(df, pertanyaan)
     else:
-        out['isi'] = buat_auto(df, pertanyaan)
-    return out['isi']
+        out["isi"] = buat_auto(df, pertanyaan)
+    return out
 
 
 
