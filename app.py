@@ -440,7 +440,7 @@ if q:
 
     st.session_state.messages.append({
         "role": "assistant",
-        "payload": out
+        "payload": out['isi']
     })
 
     st.rerun()
