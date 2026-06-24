@@ -225,6 +225,9 @@ def validate_sql(sql: str, batas=200, batas_maks=1000) -> bool:
         t += f' LIMIT {batas}'
 
     # TODO 4: implementasikan pemeriksaan di atas
+    # Convert Postgre to SQLite
+    t = re.sub(r"\bILIKE\b", "LIKE", t, flags=re.IGNORECASE)
+
     return t
 
 # Routing output
