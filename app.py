@@ -330,40 +330,40 @@ def _catat_log(rec):
 def ask(question: str, maks_retry=2, verbose=True):
     t0 = time.perf_counter()
     # TODO 6: implementasikan alur di atas dengan fallback/retry sederhana
-    st.write("="*60)
-    st.write(f"Pertanyaan: {question}")
+    # st.write("="*60)
+    # st.write(f"Pertanyaan: {question}")
 
     res = None
     for attempt in range(1, maks_retry + 2):
         sql = generate_sql(question)
-        st.write("SQL dari LLM: ")
-        st.code(sql)
+        # st.write("SQL dari LLM: ")
+        # st.code(sql)
         try:
             sql_aman = validate_sql(sql)
-            st.write("\nSQL setelah validasi:")
-            st.code(sql_aman)
+            # st.write("\nSQL setelah validasi:")
+            # st.code(sql_aman)
         except ValueError as e:
             last = f'validasi: {e}'
             # if verbose: print(f'[attempt {attempt}] {sql}  ->  ✗ {last}')
-            st.write(f"\nVALIDATE ERROR: {last}")
+            # st.write(f"\nVALIDATE ERROR: {last}")
             prompt = build_prompt(question) + f'\nSQL gagal: {sql}\nERROR: {last}\nPerbaiki.'; continue
         try:
             df = run_sql(sql_aman)
-            st.write(f"\nRUN_SQL BERHASIL ({len(df)} baris)")
-            st.code(df.head())
+            # st.write(f"\nRUN_SQL BERHASIL ({len(df)} baris)")
+            # st.code(df.head())
             # if verbose: print(f'[attempt {attempt}] {sql_aman}  ->  ✓ OK ({len(df)} baris)')
             res = {'ok': True, 'sql': sql_aman, 'data': df, 'attempts': attempt}; break
         except Exception as e:
             last = str(e)
             # if verbose: print(f'[attempt {attempt}] {sql_aman}  ->  ✗ {last}')
-            st.write("\nRUN_SQL ERROR:")
-            st.error(type(e).__name__)
-            st.exception(e)
+            # st.write("\nRUN_SQL ERROR:")
+            # st.error(type(e).__name__)
+            # st.exception(e)
             prompt = build_prompt(question) + f'\nSQL gagal: {sql_aman}\nERROR: {last}\nPerbaiki.'
     
     if res is None:
-        st.write("\nASK GAGAL")
-        st.write("LAST ERROR:", last)
+        # st.write("\nASK GAGAL")
+        # st.write("LAST ERROR:", last)
         res = {'ok': False, 'error': last, 'fallback': 'Maaf, query valid tidak dapat disusun.'}
         # if verbose: print(f'[fallback] gagal setelah {maks_retry + 1} percobaan :: {last}')
     
@@ -375,8 +375,8 @@ def ask(question: str, maks_retry=2, verbose=True):
            'latency_ms': round((time.perf_counter()-t0)*1000, 1)}
     _catat_log(rec)
     # logger.info(f"ok={rec['ok']} attempts={rec['attempts']} {rec['latency_ms']}ms :: {question}")
-    st.write("\nHASIL:")
-    st.code(res)
+    # st.write("\nHASIL:")
+    # st.code(res)
 
     return res
 
