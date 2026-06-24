@@ -392,55 +392,63 @@ def jawab(pertanyaan, force=None):
 
 
 
-def _render(payload):
-    fmt = payload.get('format')
-
-    if not fmt:
-        st.warning("Format payload tidak ditemukan")
-        st.json(payload)
-        return
-    if fmt == 'error':
-        st.error(payload.get('isi'));
-        return
-    if payload.get('sql'):
-        with st.expander('🔎 SQL'):
-            st.code(payload['sql'], language='sql')
-
-    if fmt == 'tabel':
-        st.dataframe(payload.get('df'), use_container_width=True)
-    elif fmt == 'narasi':
-        st.write(payload.get('isi'))
-    elif fmt == 'auto':
-        st.write(payload.get('isi'))
-    elif fmt == 'json':
-        st.json(payload.get('isi'))
-    elif fmt == 'chart':
-        st.pyplot(buat_chart(payload.get('df'), payload.get('pertanyaan', '')))
-
 for m in st.session_state.messages:
-    with st.chat_message(m['role']):
-        if m['role'] == 'user':
-            st.markdown(m['content'])
+    with st.chat_message(m["role"]):
+        if m["role"] == "user":
+            st.markdown(m["content"])
         else:
-            _render(m['payload'])
+            payload = m["payload"]
+            fmt = payload.get("format")
 
-q = st.chat_input('Pertanyaan...')
+            if fmt == "error":
+                st.error(payload.get("isi"))
+
+            elif fmt == "tabel":
+                st.dataframe(payload.get("df"), use_container_width=True)
+
+            elif fmt in ("narasi", "auto"):
+                st.write(payload.get("isi"))
+
+            elif fmt == "json":
+                st.json(payload.get("isi"))
+
+            elif fmt == "chart":
+                st.pyplot(
+                    buat_chart(
+                        payload.get("df"),
+                        payload.get("pertanyaan", "")
+                    )
+                )
+
+            else:
+                st.write(payload.get("isi"))
+
+q = st.chat_input("Pertanyaan...")
+
 if q:
-    st.session_state.messages.append({'role': 'user', 'content': q})
-    key = hashlib.sha256((q.lower().strip() + '|' + paksa).encode()).hexdigest()
-    with st.spinner('Memproses…'):
+    st.session_state.messages.append({
+        "role": "user",
+        "content": q
+    })
+
+    key = hashlib.sha256((q.lower().strip() + "|" + paksa).encode()).hexdigest()
+
+    with st.spinner("Memproses..."):
         if key in st.session_state.cache:
             out = st.session_state.cache[key]
         else:
-            out = jawab(q, force=None if paksa == 'auto' else paksa)
+            out = jawab(q, force=None if paksa == "auto" else paksa)
             st.session_state.cache[key] = out
+
     if not isinstance(out, dict):
-      out = {
-        "format": "narasi",
-        "isi": str(out)
+        out = {
+            "format": "narasi",
+            "isi": str(out)
         }
+
     st.session_state.messages.append({
-        'role': 'assistant',
-        'payload': out
+        "role": "assistant",
+        "payload": out
     })
+
     st.rerun()
