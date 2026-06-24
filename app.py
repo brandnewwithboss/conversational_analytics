@@ -327,26 +327,43 @@ def _catat_log(rec):
 def ask(question: str, maks_retry=2, verbose=True):
     t0 = time.perf_counter()
     # TODO 6: implementasikan alur di atas dengan fallback/retry sederhana
+    print("="*60)
+    print(f"Pertanyaan: {question}")
+
     res = None
     for attempt in range(1, maks_retry + 2):
         sql = generate_sql(question)
+        print("SQL dari LLM: ")
+        print(sql)
         try:
             sql_aman = validate_sql(sql)
+            print("\nSQL setelah validasi:")
+            print(sql_aman)
         except ValueError as e:
             last = f'validasi: {e}'
             # if verbose: print(f'[attempt {attempt}] {sql}  ->  ✗ {last}')
+            print(f"\nVALIDATE ERROR: {last}")
             prompt = build_prompt(question) + f'\nSQL gagal: {sql}\nERROR: {last}\nPerbaiki.'; continue
         try:
             df = run_sql(sql_aman)
+            print(f"\nRUN_SQL BERHASIL ({len(df)} baris)")
+            print(df.head())
             # if verbose: print(f'[attempt {attempt}] {sql_aman}  ->  ✓ OK ({len(df)} baris)')
             res = {'ok': True, 'sql': sql_aman, 'data': df, 'attempts': attempt}; break
         except Exception as e:
             last = str(e)
             # if verbose: print(f'[attempt {attempt}] {sql_aman}  ->  ✗ {last}')
+            print("\nRUN_SQL ERROR:")
+            print(type(e).__name__)
+            print(e)
             prompt = build_prompt(question) + f'\nSQL gagal: {sql_aman}\nERROR: {last}\nPerbaiki.'
+    
     if res is None:
+        print("\nASK GAGAL")
+        print("LAST ERROR:", last)
         res = {'ok': False, 'error': last, 'fallback': 'Maaf, query valid tidak dapat disusun.'}
         # if verbose: print(f'[fallback] gagal setelah {maks_retry + 1} percobaan :: {last}')
+    
     data = res.get('data')
     rec = {'waktu': datetime.now(timezone.utc).isoformat(timespec='seconds'),
            'pertanyaan': question, 'ok': res.get('ok', False), 'sql': res.get('sql'),
@@ -355,6 +372,9 @@ def ask(question: str, maks_retry=2, verbose=True):
            'latency_ms': round((time.perf_counter()-t0)*1000, 1)}
     _catat_log(rec)
     # logger.info(f"ok={rec['ok']} attempts={rec['attempts']} {rec['latency_ms']}ms :: {question}")
+    print("\nHASIL:")
+    print(res)
+    
     return res
 
 def jawab(pertanyaan, force=None):
@@ -408,7 +428,7 @@ for m in st.session_state.messages:
                         payload.get("pertanyaan", "")
                     )
                 )
-                
+
             elif fmt == "error":
                 st.error(payload.get("isi"))
 
