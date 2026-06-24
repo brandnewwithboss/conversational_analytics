@@ -26,8 +26,10 @@ with st.sidebar:
              "Siapa yang belum mengikuti diklat Data Engineering?",
              "Berapa rata-rata nilai diklat per unit (divisi)?",]:
              st.caption('• ' + ex)
+
   if st.button('🗑️ Bersihkan chat'):
     st.session_state.messages = []
+    st.session_state.cache = {}
     st.rerun()
 
 if 'messages' not in st.session_state:
@@ -370,7 +372,8 @@ def jawab(pertanyaan, force=None):
     }
 
     if fmt == "chart":
-        out["isi"] = None
+        buat_chart(df, pertanyaan)
+        out['isi'] = None
     elif fmt == "narasi":
         out["isi"] = buat_narasi(df, pertanyaan)
     elif fmt == "json":
@@ -395,7 +398,7 @@ for m in st.session_state.messages:
             elif fmt == "tabel":
                 st.dataframe(payload.get("df"), use_container_width=True)
 
-            elif fmt in ("narasi", "auto"):
+            elif fmt in ("narasi"):
                 st.write(payload.get("isi"))
 
             elif fmt == "json":
