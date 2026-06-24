@@ -40,8 +40,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 DATA = Path("data")
-# MODEL_NAME = "llama-3.3-70b-versatile"
-MODEL_NAME = "llama-3.1-8b-instant"
+MODEL_NAME = "llama-3.3-70b-versatile"
+# MODEL_NAME = "llama-3.1-8b-instant"
 
 # Ambil API key dari Secrets Streamlit Community Cloud (Manage app -> Settings -> Secrets)
 api_key = st.secrets.get("GROQ_API_KEY", None)              # baca dari panel Secrets
